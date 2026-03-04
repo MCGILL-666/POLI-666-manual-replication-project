@@ -1,0 +1,9 @@
+"","Estimate","S.E.","p-value"
+"Num. Female Aspirants",0.17,0.07,0.02
+"Total Number of Aspirants",0.57,0.2,0.01
+"Nominee is Female",0.08,0.04,0.04
+"Num.Asp. from Non-Associated Ethnic Groups",0.45,0.17,0.01
+"Num.Asp. from Party-Associated Ethnic Groups",0.09,0.18,0.62
+"Nominee is a Party-Associated Ethnic Group Member",0.03,0.05,0.61
+"Nominee has Private Sector Background",-0.07,0.04,0.07
+"Nominee is the Incumbent",0.04,0.09,0.68
