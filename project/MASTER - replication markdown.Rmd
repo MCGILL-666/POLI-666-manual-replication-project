@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
-## Setup and data loading
+# Setup and data loading
 
 ```{r setup, warning = FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -26,7 +26,7 @@ library(lavaan)
 data <- read_dta("moscowpopsurvey.dta", encoding = "Windows-1251")
 ```
 
-## Cleaning data: Constructing variables
+# Cleaning data: Constructing variables
 
 ### Building three time periods
 ```{r}
@@ -180,7 +180,7 @@ data <- data %>%
 ```
 
 
-## Results
+# Results
 
 ### Table 1
 
@@ -544,7 +544,7 @@ summary(model.fit, fit.measures = TRUE)
 
 ```
 
-## Mechanisms
+# Mechanisms
 
 ### Figure 1
 
@@ -577,7 +577,8 @@ data <- data %>%
 
 data %>%
   group_by(partynames, period123) %>%
-  summarize(mean.trust = mean(trustgovind, na.rm = TRUE), .groups = "drop") %>%
+  summarize(mean.trust = mean(trustgovind, na.rm = TRUE)) %>% 
+  ungroup() %>%
   ggplot(aes(x = partynames, 
              y = mean.trust, 
              fill = factor(period123))) +
@@ -701,14 +702,384 @@ ggplot(margeffects.data, aes(x = beta, y = var.label)) +
 ```
 
 
-## Appendix
+# Appendices
 
-### Appendix I: Distribution of respondents across districts by periods
+### Appendix I: (Balance test:) Distribution of respondents across districts by periods
 
-### Appendix II: Balance tests
+```{r}
+## Period 1 vs. Period 2 test without electday and protestday variables
+
+balance.data1a <- data %>%
+  filter(period3 != 1, electday != 1, protestday != 1)
+
+t1.1a <- t.test(balance.data1a$okrug == 1 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.2a <- t.test(balance.data1a$okrug == 2 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.3a <- t.test(balance.data1a$okrug == 3 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.4a <- t.test(balance.data1a$okrug == 4 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.5a <- t.test(balance.data1a$okrug == 5 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.6a <- t.test(balance.data1a$okrug == 6 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.7a <- t.test(balance.data1a$okrug == 7 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.8a <- t.test(balance.data1a$okrug == 8 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.9a <- t.test(balance.data1a$okrug == 9 ~ balance.data1a$period1min, var.equal = TRUE)
+t1.10a <- t.test(balance.data1a$okrug == 10 ~ balance.data1a$period1min, var.equal = TRUE)
+
+tests.1a <- list(t1.1a, t1.2a, t1.3a, t1.4a, t1.5a, t1.6a, t1.7a, t1.8a, t1.9a, t1.10a)
+
+balance.tab1a <- data.frame(district = paste0("okrug", 1:10),
+                              mean.period2 = sapply(tests.1a, function(x) x$estimate[1]),
+                              mean.period1 = sapply(tests.1a, function(x) x$estimate[2]),
+                              diff = sapply(tests.1a, 
+                                            function(x) x$estimate[2] - x$estimate[1]),
+                              t.stat = sapply(tests.1a, function(x) x$statistic),
+                              p.val = sapply(tests.1a, function(x) x$p.value),
+                              row.names = NULL)
+
+balance.tab1a
+
+```
+
+```{r}
+## Period 1 vs. Period 3 test without electday and protestday variables
+
+balance.data1b <- data %>%
+  filter(period2min != 1, electday != 1, protestday != 1)
+
+t1.1b <- t.test(balance.data1b$okrug == 1 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.2b <- t.test(balance.data1b$okrug == 2 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.3b <- t.test(balance.data1b$okrug == 3 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.4b <- t.test(balance.data1b$okrug == 4 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.5b <- t.test(balance.data1b$okrug == 5 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.6b <- t.test(balance.data1b$okrug == 6 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.7b <- t.test(balance.data1b$okrug == 7 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.8b <- t.test(balance.data1b$okrug == 8 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.9b <- t.test(balance.data1b$okrug == 9 ~ balance.data1b$period1min, var.equal = TRUE)
+t1.10b <- t.test(balance.data1b$okrug == 10 ~ balance.data1b$period1min, var.equal = TRUE)
+
+tests.1b <- list(t1.1b, t1.2b, t1.3b, t1.4b, t1.5b, t1.6b, t1.7b, t1.8b, t1.9b, t1.10b)
+
+balance.tab1b <- data.frame(district = paste0("okrug", 1:10),
+                              mean.period3 = sapply(tests.1b, function(x) x$estimate[1]),
+                              mean.period1 = sapply(tests.1b, function(x) x$estimate[2]),
+                              diff = sapply(tests.1b, 
+                                            function(x) x$estimate[2] - x$estimate[1]),
+                              t.stat = sapply(tests.1b, function(x) x$statistic),
+                              p.val = sapply(tests.1b, function(x) x$p.value),
+                              row.names = NULL)
+
+balance.tab1b
+
+```
+
+```{r}
+## Period 2 vs. Period 3 test without electday and protestday variables
+
+balance.data1c <- data %>%
+  filter(period1min != 1, electday != 1, protestday != 1)
+
+t1.1c <- t.test(balance.data1c$okrug == 1 ~ balance.data1c$period3, var.equal = TRUE)
+t1.2c <- t.test(balance.data1c$okrug == 2 ~ balance.data1c$period3, var.equal = TRUE)
+t1.3c <- t.test(balance.data1c$okrug == 3 ~ balance.data1c$period3, var.equal = TRUE)
+t1.4c <- t.test(balance.data1c$okrug == 4 ~ balance.data1c$period3, var.equal = TRUE)
+t1.5c <- t.test(balance.data1c$okrug == 5 ~ balance.data1c$period3, var.equal = TRUE)
+t1.6c <- t.test(balance.data1c$okrug == 6 ~ balance.data1c$period3, var.equal = TRUE)
+t1.7c <- t.test(balance.data1c$okrug == 7 ~ balance.data1c$period3, var.equal = TRUE)
+t1.8c <- t.test(balance.data1c$okrug == 8 ~ balance.data1c$period3, var.equal = TRUE)
+t1.9c <- t.test(balance.data1c$okrug == 9 ~ balance.data1c$period3, var.equal = TRUE)
+t1.10c <- t.test(balance.data1c$okrug == 10 ~ balance.data1c$period3, var.equal = TRUE)
+
+tests.1c <- list(t1.1c, t1.2c, t1.3c, t1.4c, t1.5c, t1.6c, t1.7c, t1.8c, t1.9c, t1.10c)
+
+balance.tab1c <- data.frame(district = paste0("okrug", 1:10),
+                              mean.period2 = sapply(tests.1c, function(x) x$estimate[1]),
+                              mean.period3 = sapply(tests.1c, function(x) x$estimate[2]),
+                              diff = sapply(tests.1c, 
+                                            function(x) x$estimate[2] - x$estimate[1]),
+                              t.stat = sapply(tests.1c, function(x) x$statistic),
+                              p.val = sapply(tests.1c, function(x) x$p.value),
+                              row.names = NULL)
+
+balance.tab1c
+
+```
+
+
+### Appendix II: (Balance tests:) Pre-treatment covariates
+
+```{r}
+
+## Period 1 vs. Period 2 test without electday and protestday variables
+
+t2a.age <- t.test(balance.data1a$age ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.male <- t.test(balance.data1a$male ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.educ <- t.test(balance.data1a$education ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.wealth <- t.test(balance.data1a$wealth ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.permres <- t.test(balance.data1a$permres ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.nationality <- t.test(balance.data1a$nationality ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.unemp <- t.test(balance.data1a$unemp ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.statesector <- t.test(balance.data1a$statesector ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.ur <- t.test(balance.data1a$ur ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.comp <- t.test(balance.data1a$comp ~ balance.data1a$period1min, var.equal = TRUE)
+t2a.opposition <- t.test(balance.data1a$opposition ~ balance.data1a$period1min, var.equal = TRUE)
+
+tests.2a <- list(age = t2a.age, male = t2a.male, education = t2a.educ, wealth = t2a.wealth, permres = t2a.permres, nationality = t2a.nationality, unemployment = t2a.unemp, statesector = t2a.statesector, ur = t2a.ur, comp = t2a.comp, opposition = t2a.opposition)
+
+balance.tab2a <- data.frame(var.name = names(tests.2a),
+                            mean.period2 = sapply(tests.2a, function(x) x$estimate[1]),
+                            mean.period1 = sapply(tests.2a, function(x) x$estimate[2]),
+                            diff = sapply(tests.2a, 
+                                          function(x) x$estimate[2] - x$estimate[1]),
+                            t.stat = sapply(tests.2a, function(x) x$statistic),
+                            p.val = sapply(tests.2a, function(x) x$p.value),
+                            row.names = NULL)
+
+balance.tab2a
+
+```
+
+```{r}
+
+## Period 1 vs. Period 3 test without electday and protestday variables
+
+t2b.age <- t.test(balance.data1b$age ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.male <- t.test(balance.data1b$male ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.educ <- t.test(balance.data1b$education ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.wealth <- t.test(balance.data1b$wealth ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.permres <- t.test(balance.data1b$permres ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.nationality <- t.test(balance.data1b$nationality ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.unemp <- t.test(balance.data1b$unemp ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.statesector <- t.test(balance.data1b$statesector ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.ur <- t.test(balance.data1b$ur ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.comp <- t.test(balance.data1b$comp ~ balance.data1b$period1min, var.equal = TRUE)
+t2b.opposition <- t.test(balance.data1b$opposition ~ balance.data1b$period1min, var.equal = TRUE)
+
+tests.2b <- list(age = t2b.age, male = t2b.male, education = t2b.educ, wealth = t2b.wealth, permres = t2b.permres, nationality = t2b.nationality, unemployment = t2b.unemp, statesector = t2b.statesector, ur = t2b.ur, comp = t2b.comp, opposition = t2b.opposition)
+
+balance.tab2b <- data.frame(var.name = names(tests.2b),
+                            mean.period3 = sapply(tests.2b, function(x) x$estimate[1]),
+                            mean.period1 = sapply(tests.2b, function(x) x$estimate[2]),
+                            diff = sapply(tests.2b, 
+                                          function(x) x$estimate[2] - x$estimate[1]),
+                            t.stat = sapply(tests.2b, function(x) x$statistic),
+                            p.val = sapply(tests.2b, function(x) x$p.value),
+                            row.names = NULL)
+
+balance.tab2b
+
+```
+
+```{r}
+
+## Period 2 vs. Period 3 test without electday and protestday variables
+
+t2c.age <- t.test(balance.data1c$age ~ balance.data1c$period3, var.equal = TRUE)
+t2c.male <- t.test(balance.data1c$male ~ balance.data1c$period3, var.equal = TRUE)
+t2c.educ <- t.test(balance.data1c$education ~ balance.data1c$period3, var.equal = TRUE)
+t2c.wealth <- t.test(balance.data1c$wealth ~ balance.data1c$period3, var.equal = TRUE)
+t2c.permres <- t.test(balance.data1c$permres ~ balance.data1c$period3, var.equal = TRUE)
+t2c.nationality <- t.test(balance.data1c$nationality ~ balance.data1c$period3, var.equal = TRUE)
+t2c.unemp <- t.test(balance.data1c$unemp ~ balance.data1c$period3, var.equal = TRUE)
+t2c.statesector <- t.test(balance.data1c$statesector ~ balance.data1c$period3, var.equal = TRUE)
+t2c.ur <- t.test(balance.data1c$ur ~ balance.data1c$period3, var.equal = TRUE)
+t2c.comp <- t.test(balance.data1c$comp ~ balance.data1c$period3, var.equal = TRUE)
+t2c.opposition <- t.test(balance.data1c$opposition ~ balance.data1c$period3, var.equal = TRUE)
+
+tests.2c <- list(age = t2c.age, male = t2c.male, education = t2c.educ, wealth = t2c.wealth, permres = t2c.permres, nationality = t2c.nationality, unemployment = t2c.unemp, statesector = t2c.statesector, ur = t2c.ur, comp = t2c.comp, opposition = t2c.opposition)
+
+balance.tab2c <- data.frame(var.name = names(tests.2c),
+                            mean.period2 = sapply(tests.2c, function(x) x$estimate[1]),
+                            mean.period3 = sapply(tests.2c, function(x) x$estimate[2]),
+                            diff = sapply(tests.2c, 
+                                          function(x) x$estimate[2] - x$estimate[1]),
+                            t.stat = sapply(tests.2c, function(x) x$statistic),
+                            p.val = sapply(tests.2c, function(x) x$p.value),
+                            row.names = NULL)
+
+balance.tab2c
+
+```
 
 ### Appendix III: Differences in partisanship across periods
 
+```{r}
+
+plot.app3.data <- data %>%
+  group_by(period123) %>%
+  summarize(UR = mean(ur, na.rm = TRUE), 
+            CPRF = mean(comp, na.rm = TRUE),
+            LDPR = mean(ldpr, na.rm = TRUE), 
+            Opposition = mean(opposition, na.rm = TRUE),
+            Undecided  = mean(dk, na.rm = TRUE)) %>%
+  ungroup() %>% 
+  pivot_longer(cols = -period123, names_to = "party.name", values_to = "share") %>%
+  mutate(party.name = factor(party.name, 
+                             levels = c("UR", "CPRF", "LDPR", "Opposition", "Undecided")),
+         period.name = factor(period123, levels = c(1, 2, 3),
+                              labels = c("Pre-Election", "Post-Election", "Post-Protest")))
+
+ggplot(plot.app3.data, aes(x = party.name, y = share, fill = period.name)) +
+  geom_col(position = "dodge") +
+  labs(x = NULL, y = "Proportion of Respondents", fill = "Period")
+
+```
+
+
 ### Appendix IV: Non-responses
 
+```{r}
+
+## Period 1 vs. Period 2 test (without electday and protestday variables)
+
+t3a.trustgovind <- t.test(balance.data1a$trustgovind.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustarmy <- t.test(balance.data1a$trustarmy.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustpolice <- t.test(balance.data1a$trustpolice.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustfsb <- t.test(balance.data1a$trustfsb.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustcourt <- t.test(balance.data1a$trustcourt.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustmungov <- t.test(balance.data1a$trustmungov.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustfedgov <- t.test(balance.data1a$trustfedgov.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustduma <- t.test(balance.data1a$trustduma.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustprocuracy <- t.test(balance.data1a$trustprocuracy.nr ~ balance.data1a$period1min, var.equal = TRUE)
+t3a.trustun <- t.test(balance.data1a$trustun.nr ~ balance.data1a$period1min, var.equal = TRUE)
+
+tests.3a <- list(gov.index = t3a.trustgovind, army = t3a.trustarmy, police = t3a.trustpolice, fsb = t3a.trustfsb, court = t3a.trustcourt, mun.gov = t3a.trustmungov, fed.gov = t3a.trustfedgov, duma = t3a.trustduma, procuracy = t3a.trustprocuracy, un = t3a.trustun)
+
+balance.tab3a <- data.frame(var.name = names(tests.3a),
+                            mean.period2 = sapply(tests.3a, function(x) x$estimate[1]),
+                            mean.period1 = sapply(tests.3a, function(x) x$estimate[2]),
+                            diff = sapply(tests.3a, 
+                                          function(x) x$estimate[2] - x$estimate[1]),
+                            t.stat = sapply(tests.3a, function(x) x$statistic),
+                            p.val = sapply(tests.3a, function(x) x$p.value),
+                            row.names = NULL)
+
+balance.tab3a
+
+```
+
+```{r}
+
+## Period 1 vs. Period 3 test (without electday and protestday variables)
+
+t3b.trustgovind <- t.test(balance.data1b$trustgovind.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustarmy <- t.test(balance.data1b$trustarmy.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustpolice <- t.test(balance.data1b$trustpolice.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustfsb <- t.test(balance.data1b$trustfsb.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustcourt <- t.test(balance.data1b$trustcourt.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustmungov <- t.test(balance.data1b$trustmungov.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustfedgov <- t.test(balance.data1b$trustfedgov.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustduma <- t.test(balance.data1b$trustduma.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustprocuracy <- t.test(balance.data1b$trustprocuracy.nr ~ balance.data1b$period1min, var.equal = TRUE)
+t3b.trustun <- t.test(balance.data1b$trustun.nr ~ balance.data1b$period1min, var.equal = TRUE)
+
+tests.3b <- list(gov.index = t3b.trustgovind, army = t3b.trustarmy, police = t3b.trustpolice, fsb = t3b.trustfsb, court = t3b.trustcourt, mun.gov = t3b.trustmungov, fed.gov = t3b.trustfedgov, duma = t3b.trustduma, procuracy = t3b.trustprocuracy, un = t3b.trustun)
+
+balance.tab3b <- data.frame(var.name = names(tests.3b),
+                            mean.period3 = sapply(tests.3b, function(x) x$estimate[1]),
+                            mean.period1 = sapply(tests.3b, function(x) x$estimate[2]),
+                            diff = sapply(tests.3b, 
+                                          function(x) x$estimate[2] - x$estimate[1]),
+                            t.stat = sapply(tests.3b, function(x) x$statistic),
+                            p.val = sapply(tests.3b, function(x) x$p.value),
+                            row.names = NULL)
+
+balance.tab3b
+
+```
+
+```{r}
+
+## Period 2 vs. Period 3 test (without electday and protestday variables)
+
+t3c.trustgovind <- t.test(balance.data1c$trustgovind.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustarmy <- t.test(balance.data1c$trustarmy.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustpolice <- t.test(balance.data1c$trustpolice.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustfsb <- t.test(balance.data1c$trustfsb.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustcourt <- t.test(balance.data1c$trustcourt.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustmungov <- t.test(balance.data1c$trustmungov.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustfedgov <- t.test(balance.data1c$trustfedgov.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustduma <- t.test(balance.data1c$trustduma.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustprocuracy <- t.test(balance.data1c$trustprocuracy.nr ~ balance.data1c$period3, var.equal = TRUE)
+t3c.trustun <- t.test(balance.data1c$trustun.nr ~ balance.data1c$period3, var.equal = TRUE)
+
+tests.3c <- list(gov.index = t3c.trustgovind, army = t3c.trustarmy, police = t3c.trustpolice, fsb = t3c.trustfsb, court = t3c.trustcourt, mun.gov = t3c.trustmungov, fed.gov = t3c.trustfedgov, duma = t3c.trustduma, procuracy = t3c.trustprocuracy, un = t3c.trustun)
+
+balance.tab3c <- data.frame(var.name = names(tests.3c),
+                            mean.period2 = sapply(tests.3c, function(x) x$estimate[1]),
+                            mean.period3 = sapply(tests.3c, function(x) x$estimate[2]),
+                            diff = sapply(tests.3c, 
+                                          function(x) x$estimate[2] - x$estimate[1]),
+                            t.stat = sapply(tests.3c, function(x) x$statistic),
+                            p.val = sapply(tests.3c, function(x) x$p.value),
+                            row.names = NULL)
+
+balance.tab3c
+
+```
+
 ### Appendix V: Daily responses
+
+```{r}
+data <- data %>%
+  mutate(time.trend = case_when(MONTH == 11 ~ day - 24,
+                                MONTH == 12 ~ day + 6),
+         date = case_when(MONTH == 11 ~ paste0("nov", day),
+                         MONTH == 12 ~ paste0("dec", day)),
+         date = factor(date, levels = c(paste0("nov", 25:30), paste0("dec", 1:24))),
+         date = relevel(date, ref = "dec4"))
+
+trend.reg <- lm(trustgovind ~ date + education + wealth, data = data)
+trend.coefs.robust <- coeftest(trend.reg, vcov = vcovHC(trend.reg, type = "HC2"))
+
+dates.to.keep <- paste0("datedec", 5:24)
+trend.plot.data <- data.frame(day = paste0("dec", 5:24),
+                              beta = trend.coefs.robust[dates.to.keep, "Estimate"],
+                              se = trend.coefs.robust[dates.to.keep, "Std. Error"]) %>% 
+  mutate(ci.lower  = beta - 1.96 * se,
+         ci.upper = beta + 1.96 * se)
+
+ggplot(trend.plot.data, aes(x = beta, y = day)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  geom_point(size = 2.5) +
+  geom_errorbar(aes(xmin = ci.lower, xmax = ci.upper), height = 0.2) +
+  labs(x = "Effect on Trust in Government (vs. Dec 4)", y = "Date")
+
+
+```
+
+# Online appendices
+
+### Data manipulation
+
+```{r}
+
+
+
+```
+
+
+### Online Appendix 1
+
+```{r}
+
+```
+
+
+### Online Appendix 2
+
+```{r}
+
+```
+
+
+### Online Appendix 3
+
+```{r}
+
+```
+
+
+### Online Appendix 4
+
+```{r}
+
+```
+
