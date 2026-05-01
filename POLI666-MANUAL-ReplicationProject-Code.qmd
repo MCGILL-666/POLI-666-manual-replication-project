@@ -1650,7 +1650,7 @@ placebo.tab
 
 ### Robustness Check S5: Assessing further heterogeneity by education
 
-```{r}
+```{r, results='asis'}
 
 # Create new, more fine-grained education categorical variable
 data <- data %>% 
@@ -1658,7 +1658,7 @@ data <- data %>%
                               education >= 1 & education <= 3 ~ 1, #bottom 1/3
                               education >= 4 & education <= 6 ~ 2, #middle 1/3
                               education >= 7 & education <= 9 ~ 3), #highest 1/3
-         educ = factor(educ.cat))
+         educ.cat = factor(educ.cat))
 
 
 # Running regressions with interactions
@@ -1715,15 +1715,15 @@ modelsummary(list("Gov Index" = lm.heteduc.govindex, "Army" = lm.heteduc.army,
                           "period2min" = "Post-election",
                           "protestday" = "Protest day",
                           "electday" = "Election day",
-                          "educ.catg1" = "Education group 1 (1-3)",
-                          "educ.catg2" = "Education group 2 (4-6)",
-                          "educ.catg3" = "Education group 3 (7-9)",
-                          "period3:educ.catg1" = "Educ Group 1 x Post-Protest",
-                          "period3:educ.catg2" = "Educ Group 2 x Post-Protest",
-                          "period3:educ.catg3" = "Educ Group 3 x Post-Protest",
-                          "period2min:educ.catg1" = "Educ Group 1 x Post-Election",
-                          "period2min:educ.catg2" = "Educ Group 2 x Post-Election",
-                          "period2min:educ.catg3" = "Educ Group 3 x Post-Election"),
+                          "educ.cat1" = "Education group 1 (1-3)",
+                          "educ.cat2" = "Education group 2 (4-6)",
+                          "educ.cat3" = "Education group 3 (7-9)",
+                          "period3:educ.cat1" = "Educ Group 1 x Post-Protest",
+                          "period3:educ.cat2" = "Educ Group 2 x Post-Protest",
+                          "period3:educ.cat3" = "Educ Group 3 x Post-Protest",
+                          "period2min:educ.cat1" = "Educ Group 1 x Post-Election",
+                          "period2min:educ.cat2" = "Educ Group 2 x Post-Election",
+                          "period2min:educ.cat3" = "Educ Group 3 x Post-Election"),
              stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
              output = "kableExtra") %>% 
    kable_styling(latex_options = c("scale_down", "hold_position"))
