@@ -35,7 +35,7 @@ data <- data %>%
   mutate(period = ifelse(day > 24 | day < 5, 1, 0),
          dec25 = ifelse(MONTH == 12 & day == 25, 1, 0),
          period1 = period - dec25,
-         period2 = ifelse(day > 4 & day == 11, 1, 0),
+         period2 = ifelse(day > 4 & day < 12, 1, 0),
          electday = ifelse(MONTH == 12 & day == 4, 1, 0),
          #electday = "Election Day"
          protestday = ifelse(MONTH == 12 & day == 10, 1, 0),
@@ -187,14 +187,6 @@ data <- data %>%
 ```{r}
 #period 1 vs. period 2
 p12.data <- data %>% filter(period3 != 1 & electday != 1 & protestday !=1)
-
-#NOTE - can later pull:
-#result$statistic - t-stat
-#result$p.value - p-value
-#result$conf.int ~ 95% CI
-#result$estimate - mean(s) of the group(s)
-#result$parameter - df
-#result$stderr - SE
 
 p12.army <- t.test(trustarmy ~ period1min, data = p12.data)
 p12.police <- t.test(trustpolice ~ period1min, data = p12.data)
@@ -669,7 +661,7 @@ modelsummary(list("Gov Index" = lm.interact.govindex, "Army" = lm.interact.army,
 
 ```{r}
 
-coefs.robust <- coeftest(lm.interact.govindex, vcov = vcovHC(lm.interact.govindex, type = "HC2"))
+vcov.fig2 <- coeftest(lm.interact.govindex, vcov = vcovHC(lm.interact.govindex, type = "HC2"))
 
 vars <- c("period3", "period2min", "protestday", "electday", "ur", "urafterprotest", "urpostelection", "apolitical", "apolafterprotest", "apolpostelection")
 var.names <- c("period3" = "Post-Protest",
@@ -684,8 +676,8 @@ var.names <- c("period3" = "Post-Protest",
                "apolpostelection" = "Apolitical x Post-Election")
 
 margeffects.data <- data.frame(vars = vars,
-                               beta = coefs.robust[vars, "Estimate"],
-                               se = coefs.robust[vars, "Std. Error"])
+                               beta = vcov.fig2[vars, "Estimate"],
+                               se = vcov.fig2[vars, "Std. Error"])
 
 margeffects.data <- margeffects.data %>% 
   mutate(ci.lower = beta - 1.96 * se,
@@ -696,8 +688,7 @@ ggplot(margeffects.data, aes(x = beta, y = var.label)) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
   geom_errorbar(aes(xmin = ci.lower, xmax = ci.upper), height = 0.2) +
   scale_y_discrete(limits = rev) +
-  labs(x = "Marginal Effect on Trust in Government (Index)", y = NULL) +
-  theme_minimal()
+  labs(x = "Marginal Effect on Trust in Government (Index)")
 
 ```
 
@@ -1027,12 +1018,12 @@ data <- data %>%
          date = relevel(date, ref = "dec4"))
 
 trend.reg <- lm(trustgovind ~ date + education + wealth, data = data)
-trend.coefs.robust <- coeftest(trend.reg, vcov = vcovHC(trend.reg, type = "HC2"))
+vcov.trend.coefs <- coeftest(trend.reg, vcov = vcovHC(trend.reg, type = "HC2"))
 
 dates.to.keep <- paste0("datedec", 5:24)
 trend.plot.data <- data.frame(day = paste0("dec", 5:24),
-                              beta = trend.coefs.robust[dates.to.keep, "Estimate"],
-                              se = trend.coefs.robust[dates.to.keep, "Std. Error"]) %>% 
+                              beta = vcov.trend.coefs[dates.to.keep, "Estimate"],
+                              se = vcov.trend.coefs[dates.to.keep, "Std. Error"]) %>% 
   mutate(ci.lower  = beta - 1.96 * se,
          ci.upper = beta + 1.96 * se)
 
@@ -1042,7 +1033,6 @@ ggplot(trend.plot.data, aes(x = beta, y = day)) +
   geom_errorbar(aes(xmin = ci.lower, xmax = ci.upper), height = 0.2) +
   labs(x = "Effect on Trust in Government (vs. Dec 4)", y = "Date")
 
-
 ```
 
 # Online appendices
@@ -1050,8 +1040,18 @@ ggplot(trend.plot.data, aes(x = beta, y = day)) +
 ### Data manipulation
 
 ```{r}
+#building individual-level meeting index
 
-
+data <- data %>%
+  mutate(invite1 = case_match(q57a, 99 ~ NA, 2 ~ 0, .default = q57a),
+         invite2 = case_match(q57b, 99 ~ NA, 2 ~ 0, .default = q57b),
+         invite3 = case_match(q57c, 99 ~ NA, 2 ~ 0, .default = q57c),
+         invite.index = invite1 + invite2 + invite3,
+         invite.index.names = case_match(invite.index,
+                                         invite1 ~ "Meeting 1",
+                                         invite2 ~ "Meeting 2",
+                                         invite3 ~ "Meeting 3",
+                                         .default = NA_character_))
 
 ```
 
@@ -1060,26 +1060,218 @@ ggplot(trend.plot.data, aes(x = beta, y = day)) +
 
 ```{r}
 
+table(data$day, data$MONTH)
+
 ```
 
 
 ### Online Appendix 2
 
-```{r}
+```{r, results='asis'}
+#Table 2A: Determinants of trust in institutions
+## Each trust measure's f-test is manually calculated out because it's difficult to put everything into one table - only one version of the code is included for brevity (but you would theoretically substitute "trustgovind" for any trust measure and rerun the chunk)
 
+reg.appendix.2a <- lm(trustgovind ~ period3 + period2min + protestday + electday +
+                        wealth + education + okrug, data = data)
+
+vcov.tab2a <- vcovHC(reg.appendix.2a, type = "HC2")
+coefs.tab2a <- coef(reg.appendix.2a)
+
+#F-test
+diff.beta <- coefs.tab2a["period2min"] - coefs.tab2a["period3"]
+diff.var <- vcov.tab2a["period2min", "period2min"] + 
+  vcov.tab2a["period3", "period3"] - 2*vcov.tab2a["period2min", "period3"]
+
+F.stat <- (diff.beta^2) / diff.var
+p.val <- pf(F.stat, df1 = 1, df2 = reg.appendix.2a$df.residual, lower.tail = FALSE)
+
+#Table: Government trust index
+modelsummary(list("Model" = reg.appendix.2a),
+             vcov = vcov.tab2a,
+             coef_map = c("period3" = "Post-Protest",
+                          "period2min" = "Post-Election",
+                          "protestday" = "Protest Day",
+                          "electday"   = "Election Day"),
+             title = "Table 2A: Determinants of trust in institutions",
+             stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
+             add_rows = tribble(~term, ~Model,
+                      "F-test", sprintf("%.2f", F.stat),
+                      "F-test p-value",  sprintf("%.3f", p.val)),
+             output = "kableExtra") %>% 
+  kable_styling(latex_options = c("scale_down", "hold_position"))
+
+```
+
+
+```{r, results='asis'}
+#Table 2A (with opposition voters getting information from TV)
+
+reg2a.subset.data <- data %>% 
+  filter(q30_2 == 1, ur == 0)
+
+reg2a.subset.index <- lm(trustgovind ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.army <- lm(trustarmy ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.police <- lm(trustpolice ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.fsb <- lm(trustfsb ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.court <- lm(trustcourt ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.mungov <- lm(trustmungov ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.fedgov <- lm(trustfedgov ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.duma <- lm(trustduma ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.procuracy <- lm(trustprocuracy ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+reg2a.subset.un <- lm(trustun ~ period3 + period2min + protestday + electday +
+    wealth + education + okrug, data = reg2a.subset.data)
+
+#Table: Government trust index
+modelsummary(list("Gov't Trust Index" = reg2a.subset.index, "Army" = reg2a.subset.army, "Police" = reg2a.subset.police, "FSB" = reg2a.subset.fsb, "Court" = reg2a.subset.court, "Mun. Gov" = reg2a.subset.mungov, "Fed. Gov" = reg2a.subset.fedgov, "Duma" = reg2a.subset.duma, "Procuracy" = reg2a.subset.procuracy, "UN" = reg2a.subset.un),
+             vcov = function(x) vcovHC(x, type = "HC2"),
+             coef_map = c("period3" = "Post-Protest",
+                          "period2min" = "Post-Election",
+                          "protestday" = "Protest Day",
+                          "electday" = "Election Day"),
+             title = "Table 2A (with opposition voters getting information from TV)",
+             stars = TRUE, fmt = 2, gof_map  = c("nobs", "r.squared"),
+             output = "kableExtra")  %>% 
+  kable_styling(latex_options = c("scale_down", "hold_position"))
+```
+
+```{r, results='asis'}
+#Table 2B: Partisan impact of the election and protest on trust
+## Each trust measure's f-test is manually calculated out because it's difficult to put everything into one table - only one version of the code is included for brevity (but you would theoretically substitute "trustgovind" for any trust measure and rerun the chunk)
+
+reg.appendix.2b <- lm(trustgovind ~ period3 + period2min + protestday + electday +
+                        ur + urafterprotest + urpostelection +
+                        apolitical + apolafterprotest + apolpostelection +
+                        wealth + education + okrug,data = data)
+
+vcov.tab2b  <- vcovHC(reg.appendix.2b, type = "HC2")
+coefs.tab2b <- coef(reg.appendix.2b)
+
+#F-test
+diff.beta <- coefs.tab2b["period2min"] - coefs.tab2b["period3"]
+diff.var <- vcov.tab2b["period2min", "period2min"] +
+  vcov.tab2b["period3", "period3"] - 2 * vcov.tab2b["period2min", "period3"]
+
+F.stat <- (diff.beta^2) / diff.var
+p.val <- pf(F.stat, df1 = 1, df2 = reg.appendix.2b$df.residual, lower.tail = FALSE)
+
+#Table: Government Trust Index
+modelsummary(list("Model" = reg.appendix.2b),
+             vcov = vcov.tab2b,
+             coef_map = c("period3" = "Post-Protest",
+                          "period2min" = "Post-Election",
+                          "protestday" = "Protest Day",
+                          "electday" = "Election Day",
+                          "ur" = "United Russia",
+                          "urafterprotest" = "United Russia x Post-Protest",
+                          "urpostelection" = "United Russia x Post-Election",
+                          "apolitical" = "Apolitical",
+                          "apolafterprotest" = "Apolitical x Post-Protest",
+                          "apolpostelection" = "Apolitical x Post-Election"),
+             title = "Table 2B: Partisan impact of the election and protest on trust",
+             stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
+             add_rows = tribble(~term, ~Model,
+                      "F-test", sprintf("%.2f", F.stat),
+                      "F-test p-value",  sprintf("%.3f", p.val)),
+             output = "kableExtra") %>% 
+  kable_styling(latex_options = c("scale_down", "hold_position"))
 ```
 
 
 ### Online Appendix 3
 
-```{r}
+```{r, results='asis'}
+#Table 3.1
 
+reg.3a.invite1 <- glm(invite1 ~ period3 + period2min + protestday + electday + wealth +
+                        education + okrug, data = data, family = binomial(link = "probit"))
+
+reg.3a.invite2 <- glm(invite2 ~ period3 + period2min + protestday + electday + wealth +
+                        education + okrug, data = data, family = binomial(link = "probit"))
+
+reg.3a.invite3 <- glm(invite1 ~ period3 + period2min + protestday + electday + wealth +
+                        education + okrug, data = data, family = binomial(link = "probit"))
+
+reg.3a.invite.index <- lm(invite.index ~ period3 + period2min + protestday + electday + 
+                             wealth + education + okrug, data = data)
+
+modelsummary(list("Meeting 1" = reg.3a.invite1, "Meeting 2" = reg.3a.invite2,
+                  "Meeting 3" = reg.3a.invite3, "Meeting Index" = reg.3a.invite.index),
+             vcov = function(x) vcovHC(x, type = "HC2"),
+             coef_map = c("period3" = "Post-Protest",
+                          "period2min" = "Post-Election",
+                          "protestday" = "Protest Day",
+                          "electday" = "Election Day"),
+             title = "Table 3.1: Effect of election and protest on meeting invitations",
+             stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
+             output = "kableExtra") %>%
+  kable_styling(latex_options = c("scale_down", "hold_position"))
 ```
 
+```{r}
+#Table 3.2
+
+reg.3b.invite1 <- glm(invite1 ~ period3 + period2min + protestday + electday +
+                        ur + urafterprotest + urpostelection +
+                        apolitical + apolafterprotest + apolpostelection +
+                        wealth + education + okrug, data   = data,
+                      family = binomial(link = "probit"))
+
+reg.3b.invite2 <- glm(invite2 ~ period3 + period2min + protestday + electday +
+                        ur + urafterprotest + urpostelection +
+                        apolitical + apolafterprotest + apolpostelection +
+                        wealth + education + okrug, data   = data,
+                      family = binomial(link = "probit"))
+
+reg.3b.invite3 <- glm(invite3 ~ period3 + period2min + protestday + electday +
+                        ur + urafterprotest + urpostelection +
+                        apolitical + apolafterprotest + apolpostelection +
+                        wealth + education + okrug, data   = data,
+                      family = binomial(link = "probit"))
+
+reg.3b.invite.index <- lm(invite.index ~ period3 + period2min + protestday + electday +
+                            ur + urafterprotest + urpostelection + apolitical + 
+                            apolafterprotest + apolpostelection + wealth + education + okrug,
+                          data = data)
+
+modelsummary(list("Meeting 1" = reg.3b.invite1, "Meeting 2" = reg.3b.invite2,
+                  "Meeting 3" = reg.3b.invite3, "Meeting Index" = reg.3b.invite.index),
+             vcov = function(x) vcovHC(x, type = "HC2"),
+             coef_map = c("period3" = "Post-Protest",
+                          "period2min" = "Post-Election",
+                          "protestday" = "Protest Day",
+                          "electday" = "Election Day",
+                          "ur" = "United Russia",
+                          "urafterprotest" = "United Russia x Post-Protest",
+                          "urpostelection" = "United Russia x Post-Election",
+                          "apolitical" = "Apolitical",
+                          "apolafterprotest" = "Apolitical x Post-Protest",
+                          "apolpostelection" = "Apolitical x Post-Election"),
+             title = "Table 3.2: Partisan impact of the election and protest on meeting invitations",
+             stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
+             output = "kableExtra") %>%
+  kable_styling(latex_options = c("scale_down", "hold_position"))
+
+```
 
 ### Online Appendix 4
 
-```{r}
-
-```
+RMLS data to generate the appropriate tables are not available in the replication files.
 
