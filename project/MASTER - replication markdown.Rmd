@@ -1087,7 +1087,7 @@ p.val <- pf(F.stat, df1 = 1, df2 = reg.appendix.2a$df.residual, lower.tail = FAL
 
 #Table: Government trust index
 modelsummary(list("Model" = reg.appendix.2a),
-             vcov = vcov.tab2a,
+             vcov = "HC2",
              coef_map = c("period3" = "Post-Protest",
                           "period2min" = "Post-Election",
                           "protestday" = "Protest Day",
@@ -1141,7 +1141,7 @@ reg2a.subset.un <- lm(trustun ~ period3 + period2min + protestday + electday +
 
 #Table: Government trust index
 modelsummary(list("Gov't Trust Index" = reg2a.subset.index, "Army" = reg2a.subset.army, "Police" = reg2a.subset.police, "FSB" = reg2a.subset.fsb, "Court" = reg2a.subset.court, "Mun. Gov" = reg2a.subset.mungov, "Fed. Gov" = reg2a.subset.fedgov, "Duma" = reg2a.subset.duma, "Procuracy" = reg2a.subset.procuracy, "UN" = reg2a.subset.un),
-             vcov = function(x) vcovHC(x, type = "HC2"),
+             vcov = "HC2",
              coef_map = c("period3" = "Post-Protest",
                           "period2min" = "Post-Election",
                           "protestday" = "Protest Day",
@@ -1174,7 +1174,7 @@ p.val <- pf(F.stat, df1 = 1, df2 = reg.appendix.2b$df.residual, lower.tail = FAL
 
 #Table: Government Trust Index
 modelsummary(list("Model" = reg.appendix.2b),
-             vcov = vcov.tab2b,
+             vcov = "HC2",
              coef_map = c("period3" = "Post-Protest",
                           "period2min" = "Post-Election",
                           "protestday" = "Protest Day",
@@ -1214,7 +1214,7 @@ reg.3a.invite.index <- lm(invite.index ~ period3 + period2min + protestday + ele
 
 modelsummary(list("Meeting 1" = reg.3a.invite1, "Meeting 2" = reg.3a.invite2,
                   "Meeting 3" = reg.3a.invite3, "Meeting Index" = reg.3a.invite.index),
-             vcov = function(x) vcovHC(x, type = "HC2"),
+             vcov = "HC2",
              coef_map = c("period3" = "Post-Protest",
                           "period2min" = "Post-Election",
                           "protestday" = "Protest Day",
@@ -1253,7 +1253,7 @@ reg.3b.invite.index <- lm(invite.index ~ period3 + period2min + protestday + ele
 
 modelsummary(list("Meeting 1" = reg.3b.invite1, "Meeting 2" = reg.3b.invite2,
                   "Meeting 3" = reg.3b.invite3, "Meeting Index" = reg.3b.invite.index),
-             vcov = function(x) vcovHC(x, type = "HC2"),
+             vcov = "HC2",
              coef_map = c("period3" = "Post-Protest",
                           "period2min" = "Post-Election",
                           "protestday" = "Protest Day",
@@ -1274,4 +1274,364 @@ modelsummary(list("Meeting 1" = reg.3b.invite1, "Meeting 2" = reg.3b.invite2,
 ### Online Appendix 4
 
 RMLS data to generate the appropriate tables are not available in the replication files.
+
+# Supplementary robustness checks
+
+### Calculating non-response rates by period
+```{r}
+# Creating data for each period
+period1.data <- data %>% 
+  filter(period1min == 1)
+
+period2.data <- data %>% 
+  filter(period2min == 1)
+
+period3.data <- data %>% 
+  filter(period3 == 1)
+
+# Full sample non-response rates
+nr.mean.govind <- mean(data$trustgovind.nr, na.rm = TRUE)
+nr.mean.army <- mean(data$trustarmy.nr, na.rm = TRUE)
+nr.mean.police <- mean(data$trustpolice.nr, na.rm = TRUE)
+nr.mean.fsb <- mean(data$trustfsb.nr, na.rm = TRUE)
+nr.mean.court <- mean(data$trustcourt.nr, na.rm = TRUE)
+nr.mean.mungov <- mean(data$trustmungov.nr, na.rm = TRUE)
+nr.mean.fedgov <- mean(data$trustfedgov.nr, na.rm = TRUE)
+nr.mean.duma <- mean(data$trustduma.nr, na.rm = TRUE)
+nr.mean.procuracy <- mean(data$trustprocuracy.nr, na.rm = TRUE)
+nr.mean.un <- mean(data$trustun.nr, na.rm = TRUE)
+
+# Period 1 non-response rates
+p1.nr.mean.govind <- mean(period1.data$trustgovind.nr, na.rm = TRUE)
+p1.nr.mean.army <- mean(period1.data$trustarmy.nr, na.rm = TRUE)
+p1.nr.mean.police <- mean(period1.data$trustpolice.nr, na.rm = TRUE)
+p1.nr.mean.fsb <- mean(period1.data$trustfsb.nr, na.rm = TRUE)
+p1.nr.mean.court <- mean(period1.data$trustcourt.nr, na.rm = TRUE)
+p1.nr.mean.mungov <- mean(period1.data$trustmungov.nr, na.rm = TRUE)
+p1.nr.mean.fedgov <- mean(period1.data$trustfedgov.nr, na.rm = TRUE)
+p1.nr.mean.duma <- mean(period1.data$trustduma.nr, na.rm = TRUE)
+p1.nr.mean.procuracy <- mean(period1.data$trustprocuracy.nr, na.rm = TRUE)
+p1.nr.mean.un <- mean(period1.data$trustun.nr, na.rm = TRUE)
+
+# Period 2 non-response rates
+p2.nr.mean.govind <- mean(period2.data$trustgovind.nr, na.rm = TRUE)
+p2.nr.mean.army <- mean(period2.data$trustarmy.nr, na.rm = TRUE)
+p2.nr.mean.police <- mean(period2.data$trustpolice.nr, na.rm = TRUE)
+p2.nr.mean.fsb <- mean(period2.data$trustfsb.nr, na.rm = TRUE)
+p2.nr.mean.court <- mean(period2.data$trustcourt.nr, na.rm = TRUE)
+p2.nr.mean.mungov <- mean(period2.data$trustmungov.nr, na.rm = TRUE)
+p2.nr.mean.fedgov <- mean(period2.data$trustfedgov.nr, na.rm = TRUE)
+p2.nr.mean.duma <- mean(period2.data$trustduma.nr, na.rm = TRUE)
+p2.nr.mean.procuracy <- mean(period2.data$trustprocuracy.nr, na.rm = TRUE)
+p2.nr.mean.un <- mean(period2.data$trustun.nr, na.rm = TRUE)
+
+# Period 3 non-response rates
+p3.nr.mean.govind <- mean(period3.data$trustgovind.nr, na.rm = TRUE)
+p3.nr.mean.army <- mean(period3.data$trustarmy.nr, na.rm = TRUE)
+p3.nr.mean.police <- mean(period3.data$trustpolice.nr, na.rm = TRUE)
+p3.nr.mean.fsb <- mean(period3.data$trustfsb.nr, na.rm = TRUE)
+p3.nr.mean.court <- mean(period3.data$trustcourt.nr, na.rm = TRUE)
+p3.nr.mean.mungov <- mean(period3.data$trustmungov.nr, na.rm = TRUE)
+p3.nr.mean.fedgov <- mean(period3.data$trustfedgov.nr, na.rm = TRUE)
+p3.nr.mean.duma <- mean(period3.data$trustduma.nr, na.rm = TRUE)
+p3.nr.mean.procuracy <- mean(period3.data$trustprocuracy.nr, na.rm = TRUE)
+p3.nr.mean.un <- mean(period3.data$trustun.nr, na.rm = TRUE)
+
+# Summary table
+nonresponse.tab <- data.frame(
+  var.name = c("Gov't Index", "Army", "Police", "FSB", "Court", 
+               "Mun Gov", "Fed Gov", "Duma", "Procuracy", "UN"),
+  full.sample = c(nr.mean.govind, nr.mean.army, nr.mean.police, nr.mean.fsb, nr.mean.court,
+                  nr.mean.mungov, nr.mean.fedgov, nr.mean.duma, nr.mean.procuracy, nr.mean.un),
+  period1 = c(p1.nr.mean.govind, p1.nr.mean.army, p1.nr.mean.police, p1.nr.mean.fsb, p1.nr.mean.court,
+              p1.nr.mean.mungov, p1.nr.mean.fedgov, p1.nr.mean.duma, p1.nr.mean.procuracy,
+              p1.nr.mean.un),
+  period2 = c(p2.nr.mean.govind, p2.nr.mean.army, p2.nr.mean.police, p2.nr.mean.fsb, p2.nr.mean.court,
+              p2.nr.mean.mungov, p2.nr.mean.fedgov, p2.nr.mean.duma, p2.nr.mean.procuracy, 
+              p2.nr.mean.un),
+  period3 = c(p3.nr.mean.govind, p3.nr.mean.army, p3.nr.mean.police, p3.nr.mean.fsb, p3.nr.mean.court,
+              p3.nr.mean.mungov, p3.nr.mean.fedgov, p3.nr.mean.duma, p3.nr.mean.procuracy, 
+              p3.nr.mean.un),
+  row.names = NULL)
+
+nonresponse.tab
+```
+
+
+### Check S1: Worst-case imputation: non-responders assigned trust = 1 (maximum distrust)
+```{r, results='asis'}
+# Imputing NAs with 1
+data.wc <- data %>% 
+  mutate(trustarmy = ifelse(is.na(trustarmy), 1, trustarmy),
+         trustpolice = ifelse(is.na(trustpolice), 1, trustpolice),
+         trustfsb = ifelse(is.na(trustfsb), 1, trustfsb),
+         trustcourt = ifelse(is.na(trustcourt), 1, trustcourt),
+         trustmungov = ifelse(is.na(trustmungov), 1, trustmungov),
+         trustfedgov = ifelse(is.na(trustfedgov), 1, trustfedgov),
+         trustduma = ifelse(is.na(trustduma), 1, trustduma),
+         trustprocuracy = ifelse(is.na(trustprocuracy), 1, trustprocuracy),
+         trustun = ifelse(is.na(trustun), 1, trustun))
+
+# Recomputing gov trust index using imputed values
+data.wc <- data.wc %>% 
+  mutate(trustgovind = (trustarmy + trustpolice + trustfsb + trustcourt + 
+                          trustmungov + trustfedgov + trustduma +
+                          trustprocuracy)/8)
+
+# Running analysis
+lm.wc.govindex <- lm(trustgovind ~ period3 + period2min + protestday + electday +
+                       wealth + education + okrug, data = data.wc) 
+
+lm.wc.army <- lm(trustarmy ~ period3 + period2min + protestday + electday +
+                   wealth + education + okrug, data = data.wc) 
+
+lm.wc.police <- lm(trustpolice ~ period3 + period2min + protestday + electday +
+                     wealth + education + okrug, data = data.wc) 
+
+lm.wc.fsb <- lm(trustfsb ~ period3 + period2min + protestday + electday +
+                  wealth + education + okrug, data = data.wc) 
+
+lm.wc.court <- lm(trustcourt ~ period3 + period2min + protestday + electday +
+                    wealth + education + okrug, data = data.wc) 
+
+lm.wc.mungov <- lm(trustmungov ~ period3 + period2min + protestday + electday +
+                     wealth + education + okrug, data = data.wc) 
+
+lm.wc.fedgov <- lm(trustfedgov ~ period3 + period2min + protestday + electday +
+                     wealth + education + okrug, data = data.wc) 
+
+lm.wc.duma <- lm(trustduma ~ period3 + period2min + protestday + electday +
+                   wealth + education + okrug, data = data.wc) 
+
+lm.wc.procuracy <- lm(trustprocuracy ~ period3 + period2min + protestday + electday +
+                        wealth + education + okrug, data = data.wc) 
+
+lm.wc.un <- lm(trustun ~ period3 + period2min + protestday + electday +
+                 wealth + education + okrug, data = data.wc) 
+
+modelsummary(list("Gov't Index" = lm.wc.govindex, "Army" = lm.wc.army, "Police" = lm.wc.police, 
+                  "FSB" = lm.wc.fsb, "Court" = lm.wc.court, "Municipal Gov" = lm.wc.mungov,
+                  "Federal Gov" = lm.wc.fedgov, "Duma" = lm.wc.duma, 
+                  "Procuracy" = lm.wc.procuracy, "United Nations" = lm.wc.un),
+             title = "Robustness Check S1: Table 2A Under Worst-Case Non-Response Imputation (missing = 1)",
+             vcov = "HC2",
+             coef_map = c("period3" = "Post-protest", 
+                          "period2min" = "Post-election", 
+                          "protestday" = "Protest day", 
+                          "electday" = "Election day"),
+             stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
+             output = "kableExtra") %>% 
+   kable_styling(latex_options = c("scale_down", "hold_position"))
+
+```
+
+### Robustness Check S2: Examining differences in trust item completion across respondents
+
+```{r, results='asis'}
+# Counting how many trust item questions each respondent answered
+data <- data %>% 
+  mutate(answered = (!is.na(trustarmy)) + (!is.na(trustpolice)) +
+           (!is.na(trustfsb)) + (!is.na(trustcourt)) +
+           (!is.na(trustmungov)) + (!is.na(trustfedgov)) +
+           (!is.na(trustduma)) + (!is.na(trustprocuracy)))
+
+# Building frequency table
+complete.tab <- data %>% 
+  group_by(answered) %>% 
+  summarize(respondents = n()) %>% 
+  ungroup()
+
+complete.tab
+
+# Building partial-response index: mean of whichever items each respondent answered
+
+data <- data %>% 
+  mutate(trustgovind.partial = rowMeans(
+    cbind(trustarmy, trustpolice, trustfsb, trustcourt,
+          trustmungov, trustfedgov, trustduma, trustprocuracy),
+    na.rm = TRUE))
+
+# Comparing sample sizes between models (including partial-response model)
+lm.partial.govindex <- lm(trustgovind.partial ~ period3 + period2min + protestday + 
+                            electday + wealth + education + okrug, data = data)
+
+size.comp.tab <- data.frame("Model" = c("Main trust index model", 
+                                       "Partial-response index model", 
+                                       "Observations recovered"),
+                             "Size (N)" = c(nobs(lm.govindex), 
+                                            nobs(lm.partial.govindex), 
+                                            nobs(lm.partial.govindex) - nobs(lm.govindex)))
+
+size.comp.tab
+
+
+# Refit all 10 trust regressions using the partial-response index
+data.partial <- data %>% 
+  mutate(trustgovind = trustgovind.partial)
+
+lm.partial.govindex <- lm(trustgovind ~ period3 + period2min + protestday + electday +
+                            wealth + education + okrug, data = data.partial)
+
+lm.partial.army <- lm(trustarmy ~ period3 + period2min + protestday + electday +
+                        wealth + education + okrug, data = data.partial)
+
+lm.partial.police <- lm(trustpolice ~ period3 + period2min + protestday + electday +
+                          wealth + education + okrug, data = data.partial)
+
+lm.partial.fsb <- lm(trustfsb ~ period3 + period2min + protestday + electday +
+                       wealth + education + okrug, data = data.partial)
+
+lm.partial.court <- lm(trustcourt ~ period3 + period2min + protestday + electday +
+                         wealth + education + okrug, data = data.partial)
+
+lm.partial.mungov <- lm(trustmungov ~ period3 + period2min + protestday + electday +
+                          wealth + education + okrug, data = data.partial)
+
+lm.partial.fedgov <- lm(trustfedgov ~ period3 + period2min + protestday + electday +
+                          wealth + education + okrug, data = data.partial)
+
+lm.partial.duma <- lm(trustduma ~ period3 + period2min + protestday + electday +
+                        wealth + education + okrug, data = data.partial)
+
+lm.partial.procuracy <- lm(trustprocuracy ~ period3 + period2min + protestday + electday +
+                             wealth + education + okrug, data = data.partial)
+
+lm.partial.un <- lm(trustun ~ period3 + period2min + protestday + electday +
+                      wealth + education + okrug, data = data.partial)
+
+# Output table
+modelsummary(list("Gov't Index" = lm.partial.govindex, "Army" = lm.partial.army,
+                  "Police" = lm.partial.police, "FSB" = lm.partial.fsb,
+                  "Court" = lm.partial.court, "Municipal Gov" = lm.partial.mungov,
+                  "Federal Gov" = lm.partial.fedgov, "Duma" = lm.partial.duma,
+                  "Procuracy" = lm.partial.procuracy, "United Nations" = lm.partial.un),
+             title = "Robustness Check S2: Partial-response trust index (using mean of available items)",
+             vcov = "HC2",
+             coef_map = c("period3" = "Post-protest", 
+                          "period2min" = "Post-election", 
+                          "protestday" = "Protest day", 
+                          "electday" = "Election day"),
+             stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
+             output = "kableExtra") %>% 
+   kable_styling(latex_options = c("scale_down", "hold_position"))
+
+```
+
+### Robustness Check S3: Daily mean trust plot with CI and loess smoothing
+
+```{r}
+# Build a single date variable using "MONTH" and "day" variables from original data
+data <- data %>% 
+  mutate(response.date = case_when(MONTH == 11 ~ as.Date(paste0("2011-11-", sprintf("%02d", day))),
+                                   MONTH == 12 ~ as.Date(paste0("2011-12-", sprintf("%02d", day)))))
+
+# Calculate daily means and 95% CIs
+daily.data <- data %>% 
+  group_by(response.date) %>% 
+  summarize(mean.trust = mean(trustgovind, na.rm = TRUE),
+            sd.trust = sd(trustgovind, na.rm = TRUE),
+            size.trust = sum(!is.na(trustgovind)),
+            se.trust = sd.trust / sqrt(size.trust),
+            ci.lower = mean.trust - 1.96 * se.trust,
+            ci.upper = mean.trust + 1.96 * se.trust) %>% 
+  ungroup()
+
+# Plotting daily trust
+daily.trust.plot <- ggplot(daily.data, aes(x = response.date, y = mean.trust)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(aes(ymin = ci.lower, ymax = ci.upper)) +
+  geom_smooth(method = "loess", se = FALSE) +
+  geom_vline(xintercept = as.Date("2011-12-10"), linetype = "dashed", colour = "red") +
+  labs(title = "Robustness Check S3: Daily mean trust in government",
+       x = "Survey date", 
+       y = "Mean trust in government")
+
+daily.trust.plot
+
+```
+
+### Robustness Check S4: Placebo timing tests
+
+```{r}
+# For each date, we build a specific sub-dataset, then run a separate regression for each placebo protest date and store coefs to present together in one table
+
+# Dec 6
+data.placebo.dec6 <- data %>% 
+  mutate(post.fake = ifelse(response.date > as.Date("2011-12-06"), 1, 0),
+         fake.day = ifelse(response.date == as.Date("2011-12-06"), 1, 0))
+
+lm.placebo.dec6 <- lm(trustgovind ~ post.fake + fake.day + wealth + education + okrug, 
+                      data = data.placebo.dec6)
+coefs.dec6 <- coeftest(lm.placebo.dec6, vcov = vcovHC(lm.placebo.dec6, type = "HC2"))
+
+# Dec 7
+data.placebo.dec7 <- data %>% 
+  mutate(post.fake = ifelse(response.date > as.Date("2011-12-07"), 1, 0),
+         fake.day = ifelse(response.date == as.Date("2011-12-07"), 1, 0))
+
+lm.placebo.dec7 <- lm(trustgovind ~ post.fake + fake.day + wealth + education + okrug, 
+                      data = data.placebo.dec7)
+
+coefs.dec7 <- coeftest(lm.placebo.dec7, vcov = vcovHC(lm.placebo.dec7, type = "HC2"))
+
+# Dec 8
+data.placebo.dec8 <- data %>% 
+  mutate(post.fake = ifelse(response.date > as.Date("2011-12-08"), 1, 0),
+         fake.day = ifelse(response.date == as.Date("2011-12-08"), 1, 0))
+
+lm.placebo.dec8 <- lm(trustgovind ~ post.fake + fake.day + wealth + education + okrug, 
+                      data = data.placebo.dec8)
+
+coefs.dec8 <- coeftest(lm.placebo.dec8, vcov = vcovHC(lm.placebo.dec8, type = "HC2"))
+
+# Dec 9
+data.placebo.dec9 <- data %>% 
+  mutate(post.fake = ifelse(response.date > as.Date("2011-12-09"), 1, 0),
+         fake.day = ifelse(response.date == as.Date("2011-12-09"), 1, 0))
+
+lm.placebo.dec9 <- lm(trustgovind ~ post.fake + fake.day + wealth + education + okrug, 
+                      data = data.placebo.dec9)
+
+coefs.dec9 <- coeftest(lm.placebo.dec9, vcov = vcovHC(lm.placebo.dec9, type = "HC2"))
+
+# Dec 10 (true protest date)
+data.placebo.dec10 <- data %>% 
+  mutate(post.fake = ifelse(response.date > as.Date("2011-12-10"), 1, 0),
+         fake.day = ifelse(response.date == as.Date("2011-12-10"), 1, 0))
+
+lm.placebo.dec10 <- lm(trustgovind ~ post.fake + fake.day + wealth + education + okrug, 
+                       data = data.placebo.dec10)
+
+coefs.dec10 <- coeftest(lm.placebo.dec10, vcov = vcovHC(lm.placebo.dec10, type = "HC2"))
+
+# Dec 11
+data.placebo.dec11 <- data %>% 
+  mutate(post.fake = ifelse(response.date > as.Date("2011-12-11"), 1, 0),
+         fake.day = ifelse(response.date == as.Date("2011-12-11"), 1, 0))
+
+lm.placebo.dec11 <- lm(trustgovind ~ post.fake + fake.day + wealth + education + okrug, 
+                       data = data.placebo.dec11)
+
+coefs.dec11 <- coeftest(lm.placebo.dec11, vcov = vcovHC(lm.placebo.dec11, type = "HC2"))
+
+# Summary table
+placebo.tab <- data.frame(date = c("Dec 6", "Dec 7", "Dec 8", "Dec 9", "Dec 10", "Dec 11"),
+                          post.coef = c(coefs.dec6["post.fake", "Estimate"],
+                                        coefs.dec7["post.fake", "Estimate"],
+                                        coefs.dec8["post.fake", "Estimate"],
+                                        coefs.dec9["post.fake", "Estimate"],
+                                        coefs.dec10["post.fake", "Estimate"],
+                                        coefs.dec11["post.fake", "Estimate"]),
+                          p.val = c(coefs.dec6["post.fake", "Pr(>|t|)"],
+                                    coefs.dec7["post.fake", "Pr(>|t|)"],
+                                    coefs.dec8["post.fake", "Pr(>|t|)"],
+                                    coefs.dec9["post.fake", "Pr(>|t|)"],
+                                    coefs.dec10["post.fake", "Pr(>|t|)"],
+                                    coefs.dec11["post.fake", "Pr(>|t|)"]),
+                          row.names = NULL)
+
+placebo.tab
+
+```
 
