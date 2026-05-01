@@ -549,7 +549,7 @@ summary(model.fit, fit.measures = TRUE)
 
 ```
 
-```{r}
+```{r, results='asis'}
 # Comparing EFA and CFA factor loading scores
 efa.loadings <- as.numeric(fa.fit$loadings)
 cfa.loadings <- standardizedSolution(model.fit) %>% 
@@ -562,7 +562,10 @@ loadings.tab <- data.frame(vars = c("trustarmy", "trustpolice", "trustfsb", "tru
            cfa.loading.score = cfa.loadings,
            row.names = NULL)
 
-loadings.tab
+loadings.tab %>% 
+  kable(caption = "Comparison of EFA and CFA factor loadings", booktabs = TRUE) %>% 
+  kable_styling(latex_options = c("scale_down", "hold_position"))
+
 ```
 
 
