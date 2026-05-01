@@ -549,6 +549,23 @@ summary(model.fit, fit.measures = TRUE)
 
 ```
 
+```{r}
+# Comparing EFA and CFA factor loading scores
+efa.loadings <- as.numeric(fa.fit$loadings)
+cfa.loadings <- standardizedSolution(model.fit) %>% 
+  filter(op == "=~") %>% 
+  pull(est.std)
+
+loadings.tab <- data.frame(vars = c("trustarmy", "trustpolice", "trustfsb", "trustcourt",
+           "trustmungov", "trustfedgov", "trustduma", "trustprocuracy"),
+           efa.loading.score = efa.loadings,
+           cfa.loading.score = cfa.loadings,
+           row.names = NULL)
+
+loadings.tab
+```
+
+
 # Mechanisms
 
 ### Figure 1
