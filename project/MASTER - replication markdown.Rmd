@@ -1635,3 +1635,154 @@ placebo.tab
 
 ```
 
+### Robustness Check S5: Assessing further heterogeneity by education
+
+```{r}
+
+# Create new, more fine-grained education categorical variable
+data <- data %>% 
+  mutate(educ.cat = case_when(education == 0 ~ 0, #no education
+                              education >= 1 & education <= 3 ~ 1, #bottom 1/3
+                              education >= 4 & education <= 6 ~ 2, #middle 1/3
+                              education >= 7 & education <= 9 ~ 3), #highest 1/3
+         educ = factor(educ.cat))
+
+
+# Running regressions with interactions
+
+lm.heteduc.govindex <- lm(trustgovind ~ period3 + period2min + protestday + electday +
+                            educ.cat + educ.cat:period3 + educ.cat:period2min +
+                            wealth + okrug, data = data)
+
+lm.heteduc.army <- lm(trustarmy ~ period3 + period2min + protestday + electday +
+                        educ.cat + educ.cat:period3 + educ.cat:period2min +
+                        wealth + okrug, data = data)
+
+lm.heteduc.police <- lm(trustpolice ~ period3 + period2min + protestday + electday +
+                          educ.cat + educ.cat:period3 + educ.cat:period2min +
+                          wealth + okrug, data = data)
+
+lm.heteduc.fsb <- lm(trustfsb ~ period3 + period2min + protestday + electday +
+                       educ.cat + educ.cat:period3 + educ.cat:period2min +
+                       wealth + okrug, data = data)
+
+lm.heteduc.court <- lm(trustcourt ~ period3 + period2min + protestday + electday +
+                         educ.cat + educ.cat:period3 + educ.cat:period2min +
+                         wealth + okrug, data = data)
+
+lm.heteduc.mungov <- lm(trustmungov ~ period3 + period2min + protestday + electday +
+                          educ.cat + educ.cat:period3 + educ.cat:period2min +
+                          wealth + okrug, data = data)
+
+lm.heteduc.fedgov <- lm(trustfedgov ~ period3 + period2min + protestday + electday +
+                          educ.cat + educ.cat:period3 + educ.cat:period2min +
+                          wealth + okrug, data = data)
+
+lm.heteduc.duma <- lm(trustduma ~ period3 + period2min + protestday + electday +
+                        educ.cat + educ.cat:period3 + educ.cat:period2min +
+                        wealth + okrug, data = data)
+
+lm.heteduc.procuracy <- lm(trustprocuracy ~ period3 + period2min + protestday + electday +
+                             educ.cat + educ.cat:period3 + educ.cat:period2min +
+                             wealth + okrug, data = data)
+
+lm.heteduc.un <- lm(trustun ~ period3 + period2min + protestday + electday +
+                      educ.cat + educ.cat:period3 + educ.cat:period2min +
+                      wealth + okrug, data = data)
+
+# Reporting in one table
+modelsummary(list("Gov Index" = lm.heteduc.govindex, "Army" = lm.heteduc.army, 
+                  "Police" = lm.heteduc.police, "FSB" = lm.heteduc.fsb, 
+                  "Court" = lm.heteduc.court, "Municipal Gov" = lm.heteduc.mungov,
+                  "Federal Gov" = lm.heteduc.fedgov, "Duma" = lm.heteduc.duma, 
+                  "Procuracy" = lm.heteduc.procuracy, "United Nations" = lm.heteduc.un),
+             title = "Robustness Check S5: Heterogeneous effects on trust by education group (reference level = 0 [no education])",
+             vcov = "HC2",
+             coef_map = c("period3" = "Post-protest",
+                          "period2min" = "Post-election",
+                          "protestday" = "Protest day",
+                          "electday" = "Election day",
+                          "educ.catg1" = "Education group 1 (1-3)",
+                          "educ.catg2" = "Education group 2 (4-6)",
+                          "educ.catg3" = "Education group 3 (7-9)",
+                          "period3:educ.catg1" = "Educ Group 1 x Post-Protest",
+                          "period3:educ.catg2" = "Educ Group 2 x Post-Protest",
+                          "period3:educ.catg3" = "Educ Group 3 x Post-Protest",
+                          "period2min:educ.catg1" = "Educ Group 1 x Post-Election",
+                          "period2min:educ.catg2" = "Educ Group 2 x Post-Election",
+                          "period2min:educ.catg3" = "Educ Group 3 x Post-Election"),
+             stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
+             output = "kableExtra") %>% 
+   kable_styling(latex_options = c("scale_down", "hold_position"))
+
+
+
+```
+
+### Robustness Check S6: Assessing further heterogeneity by state sector involvement
+
+```{r}
+
+# State sector is a dummy variable (respondent works in the state sector = 1)
+
+lm.hetstate.govindex <- lm(trustgovind ~ period3 + period2min + protestday + electday +
+                             statesector + statesector:period3 + statesector:period2min +
+                             wealth + education + okrug, data = data)
+
+lm.hetstate.army <- lm(trustarmy ~ period3 + period2min + protestday + electday +
+                         statesector + statesector:period3 + statesector:period2min +
+                         wealth + education + okrug, data = data)
+
+lm.hetstate.police <- lm(trustpolice ~ period3 + period2min + protestday + electday +
+                           statesector + statesector:period3 + statesector:period2min +
+                           wealth + education + okrug, data = data)
+
+lm.hetstate.fsb <- lm(trustfsb ~ period3 + period2min + protestday + electday +
+                        statesector + statesector:period3 + statesector:period2min +
+                        wealth + education + okrug, data = data)
+
+lm.hetstate.court <- lm(trustcourt ~ period3 + period2min + protestday + electday +
+                          statesector + statesector:period3 + statesector:period2min +
+                          wealth + education + okrug, data = data)
+
+lm.hetstate.mungov <- lm(trustmungov ~ period3 + period2min + protestday + electday +
+                           statesector + statesector:period3 + statesector:period2min +
+                           wealth + education + okrug, data = data)
+
+lm.hetstate.fedgov <- lm(trustfedgov ~ period3 + period2min + protestday + electday +
+                           statesector + statesector:period3 + statesector:period2min +
+                           wealth + education + okrug, data = data)
+
+lm.hetstate.duma <- lm(trustduma ~ period3 + period2min + protestday + electday +
+                         statesector + statesector:period3 + statesector:period2min +
+                         wealth + education + okrug, data = data)
+
+lm.hetstate.procuracy <- lm(trustprocuracy ~ period3 + period2min + protestday + electday +
+                              statesector + statesector:period3 + statesector:period2min +
+                              wealth + education + okrug, data = data)
+
+lm.hetstate.un <- lm(trustun ~ period3 + period2min + protestday + electday +
+                       statesector + statesector:period3 + statesector:period2min +
+                       wealth + education + okrug, data = data)
+
+# Reporting in one table
+modelsummary(list("Gov Index" = lm.hetstate.govindex, "Army" = lm.hetstate.army, 
+                  "Police" = lm.hetstate.police, "FSB" = lm.hetstate.fsb, 
+                  "Court" = lm.hetstate.court, "Municipal Gov" = lm.hetstate.mungov,
+                  "Federal Gov" = lm.hetstate.fedgov, "Duma" = lm.hetstate.duma, 
+                  "Procuracy" = lm.hetstate.procuracy, "United Nations" = lm.hetstate.un),
+             title = "Robustness Check S6: Heterogeneous effects on trust by state sector employment",
+             vcov = "HC2",
+             coef_map = c("period3" = "Post-protest",
+                          "period2min" = "Post-election",
+                          "protestday" = "Protest day",
+                          "electday" = "Election day",
+                          "statesector" = "State sector",
+                          "period3:statesector" = "State sector x Post-Protest",
+                          "period2min:statesector" = "State sector x Post-Election"),
+             stars = TRUE, fmt = 2, gof_map = c("nobs", "r.squared"),
+             output = "kableExtra") %>% 
+   kable_styling(latex_options = c("scale_down", "hold_position"))
+
+```
+
